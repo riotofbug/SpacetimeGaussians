@@ -7,7 +7,7 @@ conda activate feature_splatting
 # seems that we sometimes got stuck in environment.yml, so we install the packages one by one
 conda install pytorch==1.12.1 torchvision==0.13.1 torchaudio==0.12.1 cudatoolkit=11.6 -c pytorch -c conda-forge
 
-
+pip install scikit-image
 # Install for Gaussian Rasterization (Ch9) - Ours-Full
 pip install thirdparty/gaussian_splatting/submodules/gaussian_rasterization_ch9
 

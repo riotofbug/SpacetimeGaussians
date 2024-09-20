@@ -80,7 +80,7 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder, near, far, 
     cam_infos = []
 
     # pose in llff. pipeline by hypereel 
-    originnumpy = os.path.join(os.path.dirname(os.path.dirname(images_folder)), "poses_bounds.npy")
+    originnumpy = os.path.join(os.path.dirname(images_folder), "poses_bounds.npy")
     with open(originnumpy, 'rb') as numpy_file:
         poses_bounds = np.load(numpy_file)
 
@@ -157,9 +157,8 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder, near, far, 
 
        
         for j in range(startime, startime+ int(duration)):
-            image_path = os.path.join(images_folder, os.path.basename(extr.name))
+            image_path = os.path.join(images_folder, os.path.join(str(j).zfill(4),os.path.basename(extr.name)))
             image_name = os.path.basename(image_path).split(".")[0]
-            image_path = image_path.replace("colmap_"+str(startime), "colmap_{}".format(j), 1)
             assert os.path.exists(image_path), "Image {} does not exist!".format(image_path)
             image = Image.open(image_path)
             if j == startime:
@@ -774,15 +773,13 @@ def readColmapSceneInfo(path, images, eval, llffhold=8, multiview=False, duratio
         cam_extrinsics = read_extrinsics_text(cameras_extrinsic_file)
         cam_intrinsics = read_intrinsics_text(cameras_intrinsic_file)
 
-    reading_dir = "images" if images == None else images
+    reading_dir = "frames"
     parentdir = os.path.dirname(path)
 
     near = 0.01
     far = 100
 
-    starttime = os.path.basename(path).split("_")[1] # colmap_0, 
-    assert starttime.isdigit(), "Colmap folder name must be colmap_<startime>_<duration>!"
-    starttime = int(starttime)
+    starttime = 0
     
 
     cam_infos_unsorted = readColmapCameras(cam_extrinsics=cam_extrinsics, cam_intrinsics=cam_intrinsics, images_folder=os.path.join(path, reading_dir), near=near, far=far, startime=starttime, duration=duration)
@@ -790,20 +787,19 @@ def readColmapSceneInfo(path, images, eval, llffhold=8, multiview=False, duratio
      
 
     if eval:
-        train_cam_infos =  cam_infos[duration:] 
-        test_cam_infos = cam_infos[:duration]
-        uniquecheck = []
-        for cam_info in test_cam_infos:
-            if cam_info.image_name not in uniquecheck:
-                uniquecheck.append(cam_info.image_name)
-        assert len(uniquecheck) == 1 
-        
-        sanitycheck = []
-        for cam_info in train_cam_infos:
-            if cam_info.image_name not in sanitycheck:
-                sanitycheck.append(cam_info.image_name)
-        for testname in uniquecheck:
-            assert testname not in sanitycheck
+        '''
+        test_cams = [0] # NEVD is [0],vru is []
+        slices = [slice(n*duration, (n+1)*duration) for n in test_cams]
+        from itertools import chain
+        slice = list(chain(*slices))
+        test_cam_infos = cam_infos[slice]
+        all_indices = np.arange(len(cam_infos))
+
+        train_indices = np.delete(all_indices, np.s_[slice])
+        train_cam_infos = cam_infos[train_indices]
+        '''
+        test_cam_infos = cam_infos[0:duration]
+        train_cam_infos = cam_infos[duration:]
     else:
         train_cam_infos = cam_infos
         test_cam_infos = cam_infos[:2] #dummy
