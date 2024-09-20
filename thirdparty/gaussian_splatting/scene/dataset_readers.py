@@ -787,7 +787,7 @@ def readColmapSceneInfo(path, images, eval, llffhold=8, multiview=False, duratio
      
 
     if eval:
-        '''
+    
         test_cams = [0] # NEVD is [0],vru is []
         slices = [slice(n*duration, (n+1)*duration) for n in test_cams]
         from itertools import chain
@@ -797,9 +797,7 @@ def readColmapSceneInfo(path, images, eval, llffhold=8, multiview=False, duratio
 
         train_indices = np.delete(all_indices, np.s_[slice])
         train_cam_infos = cam_infos[train_indices]
-        '''
-        test_cam_infos = cam_infos[0:duration]
-        train_cam_infos = cam_infos[duration:]
+    
     else:
         train_cam_infos = cam_infos
         test_cam_infos = cam_infos[:2] #dummy
