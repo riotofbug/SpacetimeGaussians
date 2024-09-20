@@ -558,7 +558,7 @@ def fetchPly(path):
     plydata = PlyData.read(path)
     vertices = plydata['vertex']
     positions = np.vstack([vertices['x'], vertices['y'], vertices['z']]).T
-    times = np.vstack([vertices['t']]).T
+    times = np.zeros((len(vertices['x']), 1))
     colors = np.vstack([vertices['red'], vertices['green'], vertices['blue']]).T / 255.0
     normals = np.vstack([vertices['nx'], vertices['ny'], vertices['nz']]).T
     return BasicPointCloud(points=positions, colors=colors, normals=normals, times=times)
@@ -809,10 +809,8 @@ def readColmapSceneInfo(path, images, eval, llffhold=8, multiview=False, duratio
     ply_path = os.path.join(path, "sparse/0/points3D.ply")
     bin_path = os.path.join(path, "sparse/0/points3D.bin")
     txt_path = os.path.join(path, "sparse/0/points3D.txt")
-    totalply_path = os.path.join(path, "sparse/0/points3D.ply.ply")
-    
+    totalply_path = os.path.join(path, "sparse/0/points3D.ply")
 
-    
     if not os.path.exists(totalply_path):
         print("Converting point3d.bin to .ply, will happen only the first time you open the scene.")
         totalxyz = []
@@ -1202,5 +1200,3 @@ sceneLoadTypeCallbacks = {
     "Blender" : readNerfSyntheticInfo, 
     "Technicolor": readColmapSceneInfoTechnicolor,
 }
-
-
