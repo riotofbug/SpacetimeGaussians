@@ -789,14 +789,16 @@ def readColmapSceneInfo(path, images, eval, llffhold=8, multiview=False, duratio
     if eval:
     
         test_cams = [0] # NEVD is [0],vru is []
-        slices = [slice(n*duration, (n+1)*duration) for n in test_cams]
+        slices = [slice(n * duration, (n + 1) * duration) for n in test_cams]
+        sliced_infos = [cam_infos[s] for s in slices]
         from itertools import chain
-        slice = list(chain(*slices))
-        test_cam_infos = cam_infos[slice]
-        all_indices = np.arange(len(cam_infos))
-
-        train_indices = np.delete(all_indices, np.s_[slice])
-        train_cam_infos = cam_infos[train_indices]
+        test_cam_infos = list(chain(*sliced_infos))
+    
+        excluded_indices = set()
+        for s in slices:
+            excluded_indices.update(range(s.start, s.stop))
+    
+        train_cam_infos = [cam for i, cam in enumerate(cam_infos) if i not in excluded_indices]
     
     else:
         train_cam_infos = cam_infos
@@ -807,7 +809,7 @@ def readColmapSceneInfo(path, images, eval, llffhold=8, multiview=False, duratio
     ply_path = os.path.join(path, "sparse/0/points3D.ply")
     bin_path = os.path.join(path, "sparse/0/points3D.bin")
     txt_path = os.path.join(path, "sparse/0/points3D.txt")
-    totalply_path = os.path.join(path, "sparse/0/points3D_total" + str(duration) + ".ply")
+    totalply_path = os.path.join(path, "sparse/0/points3D.ply.ply")
     
 
     
