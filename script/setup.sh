@@ -30,6 +30,7 @@ pip install opencv-python
 pip install -e thirdparty/mmcv -v # take ~30min; if mmcv dir is empty: `git submodule update --init` (or git clone with --recursive)
 
 # other packages
+pip install scikit-image
 pip install natsort
 pip install scipy
 pip install kornia
