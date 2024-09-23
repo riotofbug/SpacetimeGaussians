@@ -81,7 +81,7 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder, near, far, 
 
     # pose in llff. pipeline by hypereel 
     originnumpy = os.path.join(os.path.dirname(images_folder), "poses_bounds.npy")
-    originnumpy = os.path.join(os.path.dirname(images_folder), "poses_bounds.npy")
+
     with open(originnumpy, 'rb') as numpy_file:
         poses_bounds = np.load(numpy_file)
 
@@ -560,7 +560,6 @@ def fetchPly(path):
     plydata = PlyData.read(path)
     vertices = plydata['vertex']
     positions = np.vstack([vertices['x'], vertices['y'], vertices['z']]).T
-    times = np.zeros((len(vertices['x']), 1))
     times = np.zeros((len(vertices['x']), 1))
     colors = np.vstack([vertices['red'], vertices['green'], vertices['blue']]).T / 255.0
     normals = np.vstack([vertices['nx'], vertices['ny'], vertices['nz']]).T
