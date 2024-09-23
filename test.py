@@ -69,6 +69,10 @@ def render_set(model_path, name, iteration, views, gaussians, pipeline, backgrou
         gaussians.rgbdecoder.eval()
     statsdict = {}
 
+    num = gaussians.get_xyz.shape[0]
+
+    statsdict["gs"] = num
+
     scales = gaussians.get_scaling
 
     scalemax = torch.amax(scales).item()
@@ -139,7 +143,14 @@ def render_set(model_path, name, iteration, views, gaussians, pipeline, backgrou
         rendernumpy = rendering.permute(1,2,0).detach().cpu().numpy()
         gtnumpy = gt.permute(1,2,0).detach().cpu().numpy()
         
-        ssimv2 =  sk_ssim(rendernumpy, gtnumpy, multichannel=True)
+        win_size = min(rendernumpy.shape[:2]) - 1
+
+        if win_size % 2 == 0:  # 如果 win_size 是偶数，减去 1
+            win_size -= 1
+
+        ssimv2 = sk_ssim(rendernumpy, gtnumpy, win_size=win_size, channel_axis=-1, data_range=rendernumpy.max() - rendernumpy.min())
+
+
         ssimsv2.append(ssimv2)
 
 
