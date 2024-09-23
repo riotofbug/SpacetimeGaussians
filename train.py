@@ -34,7 +34,8 @@ import numpy as np
 import torch.nn.functional as F
 import cv2
 from tqdm import tqdm
-
+from utils.timer import Timer
+from time import time
 
 sys.path.append("./thirdparty/gaussian_splatting")
 
@@ -68,7 +69,8 @@ def train(dataset, opt, pipe, saving_iterations, debug_from, densify=0, duration
     rbfbasefunction = trbfunction
     scene = Scene(dataset, gaussians, duration=duration, loader=dataset.loader)
     
-
+    start_time = time()
+    
     currentxyz = gaussians._xyz 
     maxx, maxy, maxz = torch.amax(currentxyz[:,0]), torch.amax(currentxyz[:,1]), torch.amax(currentxyz[:,2])# z wrong...
     minx, miny, minz = torch.amin(currentxyz[:,0]), torch.amin(currentxyz[:,1]), torch.amin(currentxyz[:,2])
@@ -113,7 +115,9 @@ def train(dataset, opt, pipe, saving_iterations, debug_from, densify=0, duration
     
     
     if gaussians.ts is None :
-        H,W = traincameralist[0].image_height, traincameralist[0].image_width
+        # H,W = traincameralist[0].image_height, traincameralist[0].image_width
+        W = 1352 # hard code
+        H = 1014 # hard code
         gaussians.ts = torch.ones(1,1,H,W).cuda()
 
     scene.recordpoints(0, "start training")
@@ -176,6 +180,8 @@ def train(dataset, opt, pipe, saving_iterations, debug_from, densify=0, duration
 
             for i in range(opt.batch):
                 viewpoint_cam = camindex[i]
+                if type(viewpoint_cam.original_image) == type(None):
+                    viewpoint_cam.load_image()  # for lazy loading (to avoid OOM issue)
                 render_pkg = render(viewpoint_cam, gaussians, pipe, background,  override_color=None,  basicfunction=rbfbasefunction, GRsetting=GRsetting, GRzer=GRzer)
                 image, viewspace_point_tensor, visibility_filter, radii = getrenderparts(render_pkg) 
                 
@@ -393,6 +399,13 @@ def train(dataset, opt, pipe, saving_iterations, debug_from, densify=0, duration
                 gaussians.optimizer.step()
                 
                 gaussians.optimizer.zero_grad(set_to_none = True)
+    elapsed_time = time()
+    total_time_seconds = elapsed_time - start_time
+    total_time_seconds = elapsed_time - start_time
+    hours, remainder = divmod(total_time_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    with open(os.path.join(args.model_path, 'training_time.txt'), 'a') as file:
+        file.write(f'Iteration {iteration}: {total_time_seconds} seconds ... {int(hours)}h {int(minutes)}m {seconds}sec  points: {gaussians._xyz.shape[0]}\n')
 
 
 
@@ -401,6 +414,7 @@ if __name__ == "__main__":
 
     args, lp_extract, op_extract, pp_extract = getparser()
     setgtisint8(op_extract.gtisint8)
+
     train(lp_extract, op_extract, pp_extract, args.save_iterations, args.debug_from, densify=args.densify, duration=args.duration, rgbfunction=args.rgbfunction, rdpip=args.rdpip)
 
     # All done

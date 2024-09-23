@@ -24,8 +24,8 @@ import random
 from torchvision import transforms
 class Camera(nn.Module):
     def __init__(self, colmap_id, R, T, FoVx, FoVy, image, gt_alpha_mask,
-                 image_name, uid,
-                 trans=np.array([0.0, 0.0, 0.0]), scale=1.0, data_device = "cuda", near=0.01, far=100.0, timestamp=0.0, rayo=None, rayd=None, rays=None, cxr=0.0,cyr=0.0,
+                 image_name, image_path, uid,
+                 trans=np.array([0.0, 0.0, 0.0]), scale=1.0, data_device = "cuda", near=0.01, far=100.0, timestamp=0.0, rayo=None, rayd=None, rays=None, cxr=0.0,cyr=0.0,img_wh=None
                  ):
         super(Camera, self).__init__()
 
@@ -37,6 +37,8 @@ class Camera(nn.Module):
         self.FoVy = FoVy
         self.image_name = image_name
         self.timestamp = timestamp
+        self.image_path = image_path
+        self.img_wh = img_wh
 
         self.transform = transforms.ToTensor()
 
@@ -130,8 +132,6 @@ class Camera(nn.Module):
         self.original_image = self.transform(original_image)
         self.image_width = self.original_image.shape[2]
         self.image_height = self.original_image.shape[1]
-        if self.gt_alpha_mask is not None:
-            self.original_image *= self.gt_alpha_mask.to(self.data_device)
 
 
 
