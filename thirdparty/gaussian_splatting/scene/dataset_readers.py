@@ -78,7 +78,7 @@ def getNerfppNorm(cam_info):
 
 def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder, near, far, startime=0, duration=50):
     cam_infos = []
-
+    '''
     # pose in llff. pipeline by hypereel 
     originnumpy = os.path.join(os.path.dirname(images_folder), "poses_bounds.npy")
 
@@ -110,7 +110,7 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder, near, far, 
         
         imageH = int (H//2) # note hard coded to half of the original image size
         imageW = int (W//2)
-      
+    '''  
     totalcamname = []
     for idx, key in enumerate(cam_extrinsics): # first is cam20_ so we strictly sort by camera name
         extr = cam_extrinsics[key]

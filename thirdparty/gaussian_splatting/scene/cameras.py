@@ -19,7 +19,9 @@ from utils.graphics_utils import fov2focal
 from kornia import create_meshgrid
 from helper_model import pix2ndc
 from helper_train import getgtisint8
+from PIL import Image
 import random 
+from torchvision import transforms
 class Camera(nn.Module):
     def __init__(self, colmap_id, R, T, FoVx, FoVy, image, gt_alpha_mask,
                  image_name, uid,
@@ -36,6 +38,8 @@ class Camera(nn.Module):
         self.image_name = image_name
         self.timestamp = timestamp
 
+        self.transform = transforms.ToTensor()
+
         try:
             self.data_device = torch.device(data_device)
         except Exception as e:
@@ -43,7 +47,7 @@ class Camera(nn.Module):
             print(f"[Warning] Custom device {data_device} failed, fallback to default cuda device" )
             self.data_device = torch.device("cuda")
         # image is real image 
-        if not isinstance(image, tuple):
+        if not isinstance(image, tuple) and image is not None:
             if getgtisint8():
                 self.original_image = (image*255).to(torch.uint8).to(self.data_device)
             else:
@@ -60,9 +64,14 @@ class Camera(nn.Module):
             # else:
             #     self.original_image *= torch.ones((1, self.image_height, self.image_width), device=self.data_device)
 
-        else:
+        elif isinstance(image, tuple) and image is not None:
             self.image_width = image[0]
             self.image_height = image[1]
+            self.original_image = None
+        
+        else:
+            self.image_width = None
+            self.image_height = None
             self.original_image = None
         
 
@@ -115,6 +124,14 @@ class Camera(nn.Module):
         else :
             self.rayo = None
             self.rayd = None
+    def load_image(self):
+        original_image = Image.open(self.image_path)
+        original_image = original_image.resize(self.img_wh, Image.LANCZOS)
+        self.original_image = self.transform(original_image)
+        self.image_width = self.original_image.shape[2]
+        self.image_height = self.original_image.shape[1]
+        if self.gt_alpha_mask is not None:
+            self.original_image *= self.gt_alpha_mask.to(self.data_device)
 
 
 
