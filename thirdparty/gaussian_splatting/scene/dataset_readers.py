@@ -81,6 +81,7 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder, near, far, 
 
     # pose in llff. pipeline by hypereel 
     originnumpy = os.path.join(os.path.dirname(images_folder), "poses_bounds.npy")
+    originnumpy = os.path.join(os.path.dirname(images_folder), "poses_bounds.npy")
     with open(originnumpy, 'rb') as numpy_file:
         poses_bounds = np.load(numpy_file)
 
@@ -157,6 +158,7 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder, near, far, 
 
        
         for j in range(startime, startime+ int(duration)):
+            image_path = os.path.join(images_folder, os.path.join(str(j).zfill(4),os.path.basename(extr.name)))
             image_path = os.path.join(images_folder, os.path.join(str(j).zfill(4),os.path.basename(extr.name)))
             image_name = os.path.basename(image_path).split(".")[0]
             assert os.path.exists(image_path), "Image {} does not exist!".format(image_path)
@@ -559,6 +561,7 @@ def fetchPly(path):
     vertices = plydata['vertex']
     positions = np.vstack([vertices['x'], vertices['y'], vertices['z']]).T
     times = np.zeros((len(vertices['x']), 1))
+    times = np.zeros((len(vertices['x']), 1))
     colors = np.vstack([vertices['red'], vertices['green'], vertices['blue']]).T / 255.0
     normals = np.vstack([vertices['nx'], vertices['ny'], vertices['nz']]).T
     return BasicPointCloud(points=positions, colors=colors, normals=normals, times=times)
@@ -800,6 +803,19 @@ def readColmapSceneInfo(path, images, eval, llffhold=8, multiview=False, duratio
     
         train_cam_infos = [cam for i, cam in enumerate(cam_infos) if i not in excluded_indices]
     
+    
+        test_cams = [0] # NEVD is [0],vru is []
+        slices = [slice(n * duration, (n + 1) * duration) for n in test_cams]
+        sliced_infos = [cam_infos[s] for s in slices]
+        from itertools import chain
+        test_cam_infos = list(chain(*sliced_infos))
+    
+        excluded_indices = set()
+        for s in slices:
+            excluded_indices.update(range(s.start, s.stop))
+    
+        train_cam_infos = [cam for i, cam in enumerate(cam_infos) if i not in excluded_indices]
+    
     else:
         train_cam_infos = cam_infos
         test_cam_infos = cam_infos[:2] #dummy
@@ -809,6 +825,8 @@ def readColmapSceneInfo(path, images, eval, llffhold=8, multiview=False, duratio
     ply_path = os.path.join(path, "sparse/0/points3D.ply")
     bin_path = os.path.join(path, "sparse/0/points3D.bin")
     txt_path = os.path.join(path, "sparse/0/points3D.txt")
+    totalply_path = os.path.join(path, "sparse/0/points3D.ply")
+
     totalply_path = os.path.join(path, "sparse/0/points3D.ply")
 
     if not os.path.exists(totalply_path):

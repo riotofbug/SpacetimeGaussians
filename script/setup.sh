@@ -7,7 +7,7 @@ conda activate feature_splatting
 # seems that we sometimes got stuck in environment.yml, so we install the packages one by one
 conda install pytorch==1.12.1 torchvision==0.13.1 torchaudio==0.12.1 cudatoolkit=11.6 -c pytorch -c conda-forge
 
-
+pip install scikit-image
 # Install for Gaussian Rasterization (Ch9) - Ours-Full
 pip install thirdparty/gaussian_splatting/submodules/gaussian_rasterization_ch9
 
@@ -30,6 +30,7 @@ pip install opencv-python
 pip install -e thirdparty/mmcv -v # take ~30min; if mmcv dir is empty: `git submodule update --init` (or git clone with --recursive)
 
 # other packages
+pip install scikit-image
 pip install natsort
 pip install scipy
 pip install kornia
