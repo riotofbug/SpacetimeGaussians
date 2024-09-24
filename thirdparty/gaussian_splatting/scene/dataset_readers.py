@@ -790,21 +790,7 @@ def readColmapSceneInfo(path, images, eval, llffhold=8, multiview=False, duratio
      
 
     if eval:
-    
         test_cams = [0,10,20,30] # NEVD is [0],vru is []
-        slices = [slice(n * duration, (n + 1) * duration) for n in test_cams]
-        sliced_infos = [cam_infos[s] for s in slices]
-        from itertools import chain
-        test_cam_infos = list(chain(*sliced_infos))
-    
-        excluded_indices = set()
-        for s in slices:
-            excluded_indices.update(range(s.start, s.stop))
-    
-        train_cam_infos = [cam for i, cam in enumerate(cam_infos) if i not in excluded_indices]
-    
-    
-        test_cams = [0] # NEVD is [0],vru is []
         slices = [slice(n * duration, (n + 1) * duration) for n in test_cams]
         sliced_infos = [cam_infos[s] for s in slices]
         from itertools import chain
