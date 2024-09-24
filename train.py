@@ -116,8 +116,12 @@ def train(dataset, opt, pipe, saving_iterations, debug_from, densify=0, duration
     
     if gaussians.ts is None :
         # H,W = traincameralist[0].image_height, traincameralist[0].image_width
-        W = 1352 # hard code
-        H = 1014 # hard code
+        if dataset.resolution == 2:
+            W = 1033 # hard code
+            H = 552 # hard code
+        else:
+            W = 1600 # hard code
+            H = 854 # hard code
         gaussians.ts = torch.ones(1,1,H,W).cuda()
 
     scene.recordpoints(0, "start training")
