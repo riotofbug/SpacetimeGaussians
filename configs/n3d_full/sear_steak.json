@@ -4,7 +4,7 @@
   "scaling_lr": 0.0015,
   "preprocesspoints": 0,
   "test_iteration": 30000,
-  "duration": 50,
+  "duration": 300,
   "rdpip": "train_ours_full",
   "rgbfunction": "sandwich"
 }

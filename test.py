@@ -45,6 +45,7 @@ import scipy
 import numpy as np 
 import warnings
 import json 
+from time import time
 
 from thirdparty.gaussian_splatting.lpipsPyTorch import lpips
 from helper_train import getrenderpip, getmodel, trbfunction
@@ -128,9 +129,16 @@ def render_set(model_path, name, iteration, views, gaussians, pipeline, backgrou
     else:
         render, GRsetting, GRzer = getrenderpip(rdpip) 
 
-
+    total_time = 0
+    count=0
     for idx, view in enumerate(tqdm(views, desc="Rendering and metric progress")):
+        count +=1
+        if type(view.original_image) == type(None):
+            view.load_image()  # for lazy loading (to avoid OOM issue)
+        time1 = time()
         renderingpkg = render(view, gaussians, pipeline, background, scaling_modifier=1.0, basicfunction=rbfbasefunction,  GRsetting=GRsetting, GRzer=GRzer) # C x H x W
+        time2 = time()
+        total_time += (time2 - time1)
         rendering = renderingpkg["render"]
         rendering = torch.clamp(rendering, 0, 1.0)
         gt = view.original_image[0:3, :, :].cuda().float()
@@ -159,7 +167,7 @@ def render_set(model_path, name, iteration, views, gaussians, pipeline, backgrou
         torchvision.utils.save_image(gt, os.path.join(gts_path, '{0:05d}'.format(idx) + ".png"))
         image_names.append('{0:05d}'.format(idx) + ".png")
 
-    
+    print("FPS:",count/total_time)
 
     for idx, view in enumerate(tqdm(views, desc="release gt images cuda memory for timing")):
         view.original_image = None #.detach()  
@@ -181,7 +189,8 @@ def render_set(model_path, name, iteration, views, gaussians, pipeline, backgrou
                                         "LPIPS": torch.tensor(lpipss).mean().item(),
                                         "ssimsv2": torch.tensor(ssimsv2).mean().item(),
                                         "LPIPSVGG": torch.tensor(lpipssvggs).mean().item(),
-                                        "times": torch.tensor(times).mean().item()})
+                                        "times": torch.tensor(times).mean().item(),
+                                        "fps":count/total_time})
         
         per_view_dict[model_path][iteration].update({"SSIM": {name: ssim for ssim, name in zip(torch.tensor(ssims).tolist(), image_names)},
                                                                 "PSNR": {name: psnr for psnr, name in zip(torch.tensor(psnrs).tolist(), image_names)},
