@@ -159,7 +159,6 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder, near, far, 
        
         for j in range(startime, startime+ int(duration)):
             image_path = os.path.join(images_folder, os.path.join(str(j).zfill(4),os.path.basename(extr.name)))
-            image_path = os.path.join(images_folder, os.path.join(str(j).zfill(4),os.path.basename(extr.name)))
             image_name = os.path.basename(image_path).split(".")[0]
             assert os.path.exists(image_path), "Image {} does not exist!".format(image_path)
             image = Image.open(image_path)
@@ -561,7 +560,7 @@ def fetchPly(path):
     plydata = PlyData.read(path)
     vertices = plydata['vertex']
     positions = np.vstack([vertices['x'], vertices['y'], vertices['z']]).T
-    times = np.zeros((len(vertices['x']), 1))
+    times = np.vstack([vertices['t']]).T
     colors = np.vstack([vertices['red'], vertices['green'], vertices['blue']]).T / 255.0
     normals = np.vstack([vertices['nx'], vertices['ny'], vertices['nz']]).T
     return BasicPointCloud(points=positions, colors=colors, normals=normals, times=times)
@@ -765,6 +764,7 @@ def readColmapSceneInfoMv(path, images, eval, llffhold=8, multiview=False, durat
 
 
 def readColmapSceneInfo(path, images, eval, llffhold=8, multiview=False, duration=50):
+    reading_dir = "frames"
     try:
         cameras_extrinsic_file = os.path.join(path, "sparse/0", "images.bin")
         cameras_intrinsic_file = os.path.join(path, "sparse/0", "cameras.bin")
@@ -776,13 +776,12 @@ def readColmapSceneInfo(path, images, eval, llffhold=8, multiview=False, duratio
         cam_extrinsics = read_extrinsics_text(cameras_extrinsic_file)
         cam_intrinsics = read_intrinsics_text(cameras_intrinsic_file)
 
-    reading_dir = "frames"
     parentdir = os.path.dirname(path)
 
     near = 0.01
     far = 100
 
-    starttime = 0
+    starttime = 200
     
 
     cam_infos_unsorted = readColmapCameras(cam_extrinsics=cam_extrinsics, cam_intrinsics=cam_intrinsics, images_folder=os.path.join(path, reading_dir), near=near, far=far, startime=starttime, duration=duration)
@@ -811,9 +810,7 @@ def readColmapSceneInfo(path, images, eval, llffhold=8, multiview=False, duratio
     ply_path = os.path.join(path, "sparse/0/points3D.ply")
     bin_path = os.path.join(path, "sparse/0/points3D.bin")
     txt_path = os.path.join(path, "sparse/0/points3D.txt")
-    totalply_path = os.path.join(path, "sparse/0/points3D.ply")
-
-    totalply_path = os.path.join(path, "sparse/0/points3D.ply")
+    totalply_path = os.path.join(path, "sparse/0/points3D_total" + str(starttime + duration) + ".ply")
 
     if not os.path.exists(totalply_path):
         print("Converting point3d.bin to .ply, will happen only the first time you open the scene.")
@@ -821,7 +818,7 @@ def readColmapSceneInfo(path, images, eval, llffhold=8, multiview=False, duratio
         totalrgb = []
         totaltime = []
         for i in range(starttime, starttime + duration):
-            thisbin_path = os.path.join(path, "sparse/0/points3D.bin").replace("colmap_"+ str(starttime), "colmap_" + str(i), 1)
+            thisbin_path = os.path.join(path, "colmap", f"{i:04d}","sparse","points3D.bin")
             xyz, rgb, _ = read_points3D_binary(thisbin_path)
             totalxyz.append(xyz)
             totalrgb.append(rgb)

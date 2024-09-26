@@ -31,7 +31,7 @@ def move_images_to_input_folder(folder):
 
             # 如果目标文件已存在，选择跳过或覆盖
             if not os.path.exists(target_path):
-                shutil.copy(source_path, target_path)
+                shutil.copy(source_path,target_path)
             else:
                 print(f"File {target_path} already exists, skipping.")
 
@@ -91,6 +91,7 @@ def write_colmap(path, cameras, offset=0):
         fy = cam['fy']
         cx = cam['cx']
         cy = cam['cy']
+        param = cam['intr']
 
         # extrinsics
         colmapQ = cam['q']
@@ -105,12 +106,21 @@ def write_colmap(path, cameras, offset=0):
         imagetxtlist.append("\n")
 
         params = np.array((fx , fy, cx, cy,))
-
+        
         camera_id = db.add_camera(1, w, h, params)
         cameraline = f"{id} PINHOLE {w} {h} {fx} {fy} {cx} {cy}\n"
         cameratxtlist.append(cameraline)
         image_id = db.add_image(filename, camera_id,  prior_q=colmapQ, prior_t=T, image_id=id)
         db.commit()
+        
+        '''
+        camera_id = db.add_camera(4, w, h, param)
+        cameraline = f"{id} OPENCV {w} {h} {' '.join(param.astype(str))} \n"
+        cameratxtlist.append(cameraline)
+        
+        image_id = db.add_image(filename, camera_id,  prior_q=colmapQ, prior_t=T, image_id=id)
+        db.commit()
+        '''
     db.close()
 
     savetxt.write_text("".join(imagetxtlist))
@@ -133,7 +143,7 @@ def getcolmapsinglen3d(folder, offset):
     if not os.path.exists(distortedmodel):
         os.makedirs(distortedmodel)
 
-    featureextract = "colmap feature_extractor --database_path " + dbfile+ " --image_path " + inputimagefolder+ " --ImageReader.camera_model PINHOLE "
+    featureextract = "colmap feature_extractor --database_path " + dbfile+ " --image_path " + inputimagefolder
 
     exit_code = os.system(featureextract)
     if exit_code != 0:
@@ -154,10 +164,8 @@ def getcolmapsinglen3d(folder, offset):
        exit(exit_code)
     print(triandmap)
 
-    undistfolder = os.path.join(folder, "undistort")
-
-    img_undist_cmd = "colmap" + " image_undistorter --image_path " + inputimagefolder + " --input_path " + distortedmodel  + " --output_path " + undistfolder  \
-    + " --output_type COLMAP" 
+    img_undist_cmd = "colmap" + " image_undistorter --image_path " + inputimagefolder + " --input_path " + distortedmodel  + " --output_path " + folder  \
+    + " --output_type COLMAP"
     exit_code = os.system(img_undist_cmd)
     if exit_code != 0:
         exit(exit_code)
@@ -200,7 +208,7 @@ def convertdynerftocolmapdb(path, cameraspath, offset=0, downscale=1):
             fy = cam_intrinsics[v.camera_id].params[1]
 
         camera = {
-            'id': v.id,
+            'id':v.id,
             'filename': v.name,
             'w': cam_intrinsics[v.camera_id].width,
             'h': cam_intrinsics[v.camera_id].height,
@@ -210,8 +218,10 @@ def convertdynerftocolmapdb(path, cameraspath, offset=0, downscale=1):
             'cy': cam_intrinsics[v.camera_id].params[-1],
             'q': v.qvec,
             't': v.tvec,
+            'intr': cam_intrinsics[v.camera_id].params,
         }
         cameras.append(camera)
+
 
     write_colmap(path, cameras, offset)
 

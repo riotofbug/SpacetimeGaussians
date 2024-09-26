@@ -131,14 +131,20 @@ def render_set(model_path, name, iteration, views, gaussians, pipeline, backgrou
 
     total_time = 0
     count=0
+    start = torch.cuda.Event(enable_timing=True)
+    end = torch.cuda.Event(enable_timing=True)
     for idx, view in enumerate(tqdm(views, desc="Rendering and metric progress")):
         count +=1
         if type(view.original_image) == type(None):
             view.load_image()  # for lazy loading (to avoid OOM issue)
-        time1 = time()
+        start.record()
+        torch.cuda.synchronize()
+
         renderingpkg = render(view, gaussians, pipeline, background, scaling_modifier=1.0, basicfunction=rbfbasefunction,  GRsetting=GRsetting, GRzer=GRzer) # C x H x W
-        time2 = time()
-        total_time += (time2 - time1)
+        end.record()
+        torch.cuda.synchronize()
+        elapsed_time = start.elapsed_time(end)
+        total_time += elapsed_time
         rendering = renderingpkg["render"]
         rendering = torch.clamp(rendering, 0, 1.0)
         gt = view.original_image[0:3, :, :].cuda().float()
@@ -167,7 +173,7 @@ def render_set(model_path, name, iteration, views, gaussians, pipeline, backgrou
         torchvision.utils.save_image(gt, os.path.join(gts_path, '{0:05d}'.format(idx) + ".png"))
         image_names.append('{0:05d}'.format(idx) + ".png")
 
-    print("FPS:",count/total_time)
+    print("FPS:",count/total_time*1000)
 
     for idx, view in enumerate(tqdm(views, desc="release gt images cuda memory for timing")):
         view.original_image = None #.detach()  
@@ -190,7 +196,7 @@ def render_set(model_path, name, iteration, views, gaussians, pipeline, backgrou
                                         "ssimsv2": torch.tensor(ssimsv2).mean().item(),
                                         "LPIPSVGG": torch.tensor(lpipssvggs).mean().item(),
                                         "times": torch.tensor(times).mean().item(),
-                                        "fps":count/total_time})
+                                        "fps":count/total_time*1000})
         
         per_view_dict[model_path][iteration].update({"SSIM": {name: ssim for ssim, name in zip(torch.tensor(ssims).tolist(), image_names)},
                                                                 "PSNR": {name: psnr for psnr, name in zip(torch.tensor(psnrs).tolist(), image_names)},
