@@ -1,5 +1,5 @@
 {
-    "resolution": 1,
+    "resolution": 2,
     "model": "ours_full",
     "scaling_lr": 0.003,
     "preprocesspoints": 0,
@@ -12,6 +12,6 @@
     "duration": 250,
     "rdpip": "train_ours_full",
     "rgbfunction": "sandwich",
-    "trbfslinit": 2.0,
+    "trbfslinit": 4.0,
     "trbfs_lr": 0.05
   }

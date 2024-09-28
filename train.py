@@ -112,17 +112,9 @@ def train(dataset, opt, pipe, saving_iterations, debug_from, densify=0, duration
         traincamdict = {}
         for i in range(duration): # 0 to 4, -> (0.0, to 0.8)
             traincamdict[i] = [cam for cam in traincameralist if cam.timestamp == i/duration]
+
     
-    
-    if gaussians.ts is None :
-        # H,W = traincameralist[0].image_height, traincameralist[0].image_width
-        if dataset.resolution == 2:
-            W = 1033 # hard code
-            H = 552 # hard code
-        else:
-            W = 1600 # hard code
-            H = 854 # hard code
-        gaussians.ts = torch.ones(1,1,H,W).cuda()
+   
 
     scene.recordpoints(0, "start training")
 
@@ -254,7 +246,7 @@ def train(dataset, opt, pipe, saving_iterations, debug_from, densify=0, duration
             if iteration == opt.iterations:
                 progress_bar.close()
 
-            if (iteration in saving_iterations):
+            if (iteration in saving_iterations) or iteration == opt.iterations:
                 print("\n[ITER {}] Saving Gaussians".format(iteration))
                 scene.save(iteration)
 

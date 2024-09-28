@@ -781,7 +781,7 @@ def readColmapSceneInfo(path, images, eval, llffhold=8, multiview=False, duratio
     near = 0.01
     far = 100
 
-    starttime = 200
+    starttime = 0
     
 
     cam_infos_unsorted = readColmapCameras(cam_extrinsics=cam_extrinsics, cam_intrinsics=cam_intrinsics, images_folder=os.path.join(path, reading_dir), near=near, far=far, startime=starttime, duration=duration)
