@@ -560,7 +560,11 @@ def fetchPly(path):
     plydata = PlyData.read(path)
     vertices = plydata['vertex']
     positions = np.vstack([vertices['x'], vertices['y'], vertices['z']]).T
-    times = np.vstack([vertices['t']]).T
+    try:
+        times = np.vstack([vertices['t']]).T
+    except:
+        times = np.zeros((len(vertices['x']), 1))
+        print("time of points set: 0\n")
     colors = np.vstack([vertices['red'], vertices['green'], vertices['blue']]).T / 255.0
     normals = np.vstack([vertices['nx'], vertices['ny'], vertices['nz']]).T
     return BasicPointCloud(points=positions, colors=colors, normals=normals, times=times)
@@ -810,7 +814,8 @@ def readColmapSceneInfo(path, images, eval, llffhold=8, multiview=False, duratio
     ply_path = os.path.join(path, "sparse/0/points3D.ply")
     bin_path = os.path.join(path, "sparse/0/points3D.bin")
     txt_path = os.path.join(path, "sparse/0/points3D.txt")
-    totalply_path = os.path.join(path, "sparse/0/points3D_total" + str(starttime + duration) + ".ply")
+    # totalply_path = os.path.join(path, "sparse/0/points3D_total" + str(starttime + duration) + ".ply") # point cloud is from all frame
+    totalply_path = os.path.join(path, "sparse/0/points3D_down2.ply") # point cloud is from the first frame
 
     if not os.path.exists(totalply_path):
         print("Converting point3d.bin to .ply, will happen only the first time you open the scene.")

@@ -1,0 +1,17 @@
+{
+    "resolution": 1,
+    "model": "ours_full",
+    "scaling_lr": 0.003,
+    "preprocesspoints": 0,
+
+    "test_iteration": 30000,
+    "iterations": 30000,
+    "position_lr_max_steps": 30000,
+
+    "densify": 3,
+    "duration": 250,
+    "rdpip": "train_ours_full",
+    "rgbfunction": "sandwich",
+    "trbfslinit": 0,
+    "trbfs_lr": 0.05
+  }
